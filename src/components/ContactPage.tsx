@@ -54,36 +54,76 @@ export default function ContactPage({ selectedPlan }: ContactPageProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+//   const handleSubmit = async (e: React.FormEvent) => {
+//   e.preventDefault();
+//   setIsSubmitting(true);
+
+//   try {
+//     const response = await fetch("https://script.google.com/macros/s/AKfycbwCsDmHQraf3VMStJAnBIywuge-NhPFiyDEjK5klmZAoYNYJdMnmdnYnk6LGfcTMDiw/exec", {
+//       method: "POST",
+//       mode: "no-cors",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(formData),
+//     });
+
+//     toast.success("Message sent successfully!", {
+//       description: "Your response has been recorded. We'll get back to you soon!",
+//     });
+
+//     setFormData({
+//       firstName: "",
+//       lastName: "",
+//       email: "",
+//       phone: "",
+//       planType: selectedPlan || "",
+//       message: "",
+//     });
+
+//   } catch (error) {
+//     console.error("Error submitting form:", error);
+//     toast.error("Failed to send message", {
+//       description: "Please try again later.",
+//     });
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsSubmitting(true);
 
   try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbwCsDmHQraf3VMStJAnBIywuge-NhPFiyDEjK5klmZAoYNYJdMnmdnYnk6LGfcTMDiw/exec", {
+    const response = await fetch("https://adhyanx-backend.onrender.com/api/contacts", {
       method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });
 
-    toast.success("Message sent successfully!", {
-      description: "Your response has been recorded. We'll get back to you soon!",
-    });
+    const data = await response.json();
 
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      planType: selectedPlan || "",
-      message: "",
-    });
+    if (data.success) {
+      toast.success("Message sent successfully!", {
+        description: "Your response has been recorded. We'll get back to you soon!",
+      });
 
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        planType: selectedPlan || "",
+        message: "",
+      });
+    } else {
+      toast.error("Failed to send message", {
+        description: data.message || "Please try again later.",
+      });
+    }
   } catch (error) {
     console.error("Error submitting form:", error);
-    toast.error("Failed to send message", {
+    toast.error("Server error", {
       description: "Please try again later.",
     });
   } finally {

@@ -388,13 +388,13 @@ const handleDelete = async (_id: string) => {
               >
                 
                 {/* Delete Button */}
-                <button
+                {/* <button
                   onClick={() => handleDelete(testimonial.id)}
                   className="absolute top-4 right-4 w-8 h-8 bg-red-500/20 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
                   title="Delete testimonial"
                 >
                   <Trash2 className="w-4 h-4 text-red-400 hover:text-white transition-colors duration-300" />
-                </button>
+                </button> */}
 
                 {/* Profile Picture */}
                 <div className="flex justify-center mb-6">
