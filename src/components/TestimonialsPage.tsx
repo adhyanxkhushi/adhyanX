@@ -5,9 +5,11 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useEffect } from 'react';
+import axios from 'axios';
 
 interface Testimonial {
-  id: string;
+  _id: string;
   name: string;
   role: 'student' | 'parent';
   rating: number;
@@ -16,44 +18,57 @@ interface Testimonial {
   image?: string;
   email?: string;
 }
-interface TestimonialProps {
-  onNavigate: (page: string, planType?: string) => void;
-}
 
+export default function TestimonialsPage() {
 
-export default function TestimonialsPage({ onNavigate }: TestimonialProps) {
-
-  const initialTestimonials: Testimonial[] = [
-    // {
-    //   id: "1",
-    //   name: "Emma van der Berg",
-    //   role: "student",
-    //   rating: 5,
-    //   text: "AdhyanX Guidance transformed my understanding of calculus. I went from struggling with derivatives to confidently solving complex integration problems. My IB Math HL score improved dramatically!",
-    //   avatar: "E"
-    // },
-    // {
-    //   id: "2",
-    //   name: "Luca Rossi",
-    //   role: "student",
-    //   rating: 5,
-    //   text: "The personalized approach really made the difference. My tutor didn't just teach formulas - they helped me understand the concepts behind them. Physics became my strongest subject!",
-    //   avatar: "L"
-    // },
-    // {
-    //   id: "3",
-    //   name: "Sophia Ahmed",
-    //   role: "parent",
-    //   rating: 5,
-    //   text: "My child was completely lost in organic chemistry. The tailored learning plan broke everything down into manageable steps. Now he is considering chemistry in university!",
-    //   avatar: "S"
-    // }
-  ];
+  // const initialTestimonials: Testimonial[] = [
+  //   {
+  //     id: "1",
+  //     name: "Emma van der Berg",
+  //     role: "student",
+  //     rating: 5,
+  //     text: "AdhyanX Guidance transformed my understanding of calculus. I went from struggling with derivatives to confidently solving complex integration problems. My IB Math HL score improved dramatically!",
+  //     avatar: "E"
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Luca Rossi",
+  //     role: "student",
+  //     rating: 5,
+  //     text: "The personalized approach really made the difference. My tutor didn't just teach formulas - they helped me understand the concepts behind them. Physics became my strongest subject!",
+  //     avatar: "L"
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "Sophia Ahmed",
+  //     role: "parent",
+  //     rating: 5,
+  //     text: "My child was completely lost in organic chemistry. The tailored learning plan broke everything down into manageable steps. Now he is considering chemistry in university!",
+  //     avatar: "S"
+  //   }
+  // ];
 
   // Sort testimonials by rating (highest first)
-  const sortedTestimonials = [...initialTestimonials].sort((a, b) => b.rating - a.rating);
+  // const sortedTestimonials = [...initialTestimonials].sort((a, b) => b.rating - a.rating);
 
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(sortedTestimonials);
+const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  fetch("https://adhyanx-backend.onrender.com/api/testimonials")
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Fetched testimonials:", data);
+      if (data.success && Array.isArray(data.data)) {
+        setTestimonials(data.data); // data.data should have _id for each testimonial
+      } else {
+        setTestimonials([]);
+      }
+    })
+    .catch((error) => console.error("Error fetching testimonials:", error));
+}, []);
+
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -83,46 +98,61 @@ export default function TestimonialsPage({ onNavigate }: TestimonialProps) {
     setImagePreview(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.role || !formData.text || formData.rating === 0) {
-      alert('Please fill in all required fields and provide a rating');
-      return;
-    }
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const newTestimonial: Testimonial = {
-      id: Date.now().toString(),
-      name: formData.name,
-      role: formData.role as 'student' | 'parent',
-      rating: formData.rating,
-      text: formData.text,
-      avatar: formData.name.charAt(0).toUpperCase(),
-      image: imageFile || undefined,
-      email: formData.email
-    };
+  if (!formData.name || !formData.email || !formData.role || !formData.text || formData.rating === 0) {
+    alert('Please fill in all required fields and provide a rating');
+    return;
+  }
 
-    // Add new testimonial and re-sort by rating
-    const updatedTestimonials = [newTestimonial, ...testimonials].sort((a, b) => b.rating - a.rating);
-    setTestimonials(updatedTestimonials);
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      role: '',
-      text: '',
-      rating: 0
-    });
-    setImageFile(null);
-    setImagePreview(null);
+  const newTestimonial = {
+    name: formData.name,
+    email: formData.email,
+    role: formData.role,
+    rating: formData.rating,
+    text: formData.text,
+    profile_pic: imageFile || "",
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this testimonial?')) {
-      setTestimonials(testimonials.filter(testimonial => testimonial.id !== id));
+  try {
+    const res = await axios.post("https://adhyanx-backend.onrender.com/api/testimonials", newTestimonial);
+    const createdTestimonial = res.data;
+    setTestimonials([createdTestimonial, ...testimonials]);
+  } catch (error) {
+    console.error("Error submitting testimonial:", error);
+  }
+
+  setFormData({
+    name: '',
+    email: '',
+    role: '',
+    text: '',
+    rating: 0
+  });
+  setImageFile(null);
+  setImagePreview(null);
+};
+
+
+const handleDelete = async (_id: string) => {
+  if (window.confirm('Are you sure you want to delete this testimonial?')) {
+    try {
+      const res = await axios.delete(`http://localhost:8080/api/testimonials/${_id}`);
+
+      if (res.data.success) {
+        // Update state immediately
+        setTestimonials(prev => prev.filter(testimonial => testimonial._id !== _id));
+      } else {
+        alert("Failed to delete testimonial from server");
+      }
+    } catch (error) {
+      console.error("Error deleting testimonial:", error);
+      alert("Error deleting testimonial. Check console for details.");
     }
-  };
+  }
+};
+
 
   return (
     <div className="min-h-screen pt-20">
@@ -351,8 +381,8 @@ export default function TestimonialsPage({ onNavigate }: TestimonialProps) {
 
           {/* Grid Layout - 3 per row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up animation-delay-400">
-            {testimonials.map((testimonial, index) => (
-              <div 
+            {Array.isArray(testimonials) && testimonials.map((testimonial: any, index) => (
+              <div
                 key={`${testimonial.id}-${index}`}
                 className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl shadow-xl border border-slate-700 hover:shadow-yellow-500/30 hover:shadow-2xl hover:border-yellow-500/50 hover:bg-gradient-to-br hover:from-slate-700 hover:to-slate-800 transition-all duration-500 transform hover:-translate-y-2 h-full flex flex-col group relative"
               >
@@ -424,10 +454,10 @@ export default function TestimonialsPage({ onNavigate }: TestimonialProps) {
               Join hundreds of students who have transformed their academic performance with personalized tutoring.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button onClick={() => onNavigate('contact','free')}className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium py-4 px-8 rounded-lg hover:from-yellow-600 hover:to-orange-600 transform hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl">
-                Book Free Session
+              <button className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium py-4 px-8 rounded-lg hover:from-yellow-600 hover:to-orange-600 transform hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl">
+                Book a Free Consultation
               </button>
-              <button onClick={() => onNavigate('pricing')} className="border-2 border-yellow-500 text-yellow-600 font-medium py-4 px-8 rounded-lg hover:bg-yellow-50 transition-all duration-300">
+              <button className="border-2 border-yellow-500 text-yellow-600 font-medium py-4 px-8 rounded-lg hover:bg-yellow-50 transition-all duration-300">
                 View Pricing Plans
               </button>
             </div>
