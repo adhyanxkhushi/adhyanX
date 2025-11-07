@@ -99,13 +99,11 @@ useEffect(() => {
     setImagePreview(null);
   };
 
-
-const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  // Basic form validation
   if (!formData.name || !formData.email || !formData.role || !formData.text || formData.rating === 0) {
-    toast.error("Please fill in all required fields and provide a rating");
+    alert('Please fill in all required fields and provide a rating');
     return;
   }
 
@@ -115,46 +113,28 @@ const handleSubmit = async (e: React.FormEvent) => {
     role: formData.role,
     rating: formData.rating,
     text: formData.text,
-    image: imageFile || "", // match your backend field (not profile_pic)
+    profile_pic: imageFile || "",
   };
 
   try {
-    const res = await axios.post(
-      "https://adhyanx-backend.onrender.com/api/testimonials",
-      newTestimonial
-    );
-
-    if (res.data.success) {
-      toast.success("✅ Testimonial submitted successfully!", {
-        duration: 4000,
-      });
-
-      // Access the new testimonial from res.data.data
-      const createdTestimonial = res.data.data;
-
-      // Instantly add it to the UI
-      setTestimonials((prev) => [createdTestimonial, ...prev]);
-    } else {
-      toast.error("❌ Failed to submit testimonial. Please try again.");
-      return;
-    }
+    const res = await axios.post("https://adhyanx-backend.onrender.com/api/testimonials", newTestimonial);
+    
+    const createdTestimonial = res.data;
+    setTestimonials([createdTestimonial, ...testimonials]);
   } catch (error) {
     console.error("Error submitting testimonial:", error);
-    toast.error("⚠️ Something went wrong. Please try again later.");
   }
 
-  // Reset the form
   setFormData({
-    name: "",
-    email: "",
-    role: "",
-    text: "",
-    rating: 0,
+    name: '',
+    email: '',
+    role: '',
+    text: '',
+    rating: 0
   });
   setImageFile(null);
   setImagePreview(null);
 };
-
 
 
 const handleDelete = async (_id: string) => {
