@@ -102,6 +102,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
 
     const data = await response.json();
+    console.log("Form submission response:", data);
 
     if (data.success) {
       toast.success("Message sent successfully!", {
