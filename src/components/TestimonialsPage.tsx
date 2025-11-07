@@ -99,11 +99,11 @@ useEffect(() => {
     setImagePreview(null);
   };
 
- const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   if (!formData.name || !formData.email || !formData.role || !formData.text || formData.rating === 0) {
-    alert('Please fill in all required fields and provide a rating');
+    toast.error('Please fill in all required fields and provide a rating');
     return;
   }
 
@@ -118,11 +118,19 @@ useEffect(() => {
 
   try {
     const res = await axios.post("https://adhyanx-backend.onrender.com/api/testimonials", newTestimonial);
-    
-    const createdTestimonial = res.data;
-    setTestimonials([createdTestimonial, ...testimonials]);
+
+    if (res.status === 200 || res.status === 201) {
+      toast.success("✅ Testimonial submitted successfully!");
+
+      const createdTestimonial = res.data;
+
+      setTestimonials((prev) => [createdTestimonial, ...prev]);
+    } else {
+      toast.error("❌ Failed to submit testimonial. Please try again.");
+    }
   } catch (error) {
     console.error("Error submitting testimonial:", error);
+    toast.error("⚠️ Something went wrong. Please try again later.");
   }
 
   setFormData({
@@ -135,6 +143,7 @@ useEffect(() => {
   setImageFile(null);
   setImagePreview(null);
 };
+
 
 
 const handleDelete = async (_id: string) => {
