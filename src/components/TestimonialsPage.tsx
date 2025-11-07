@@ -7,6 +7,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useEffect } from 'react';
 import axios from 'axios';
+import toast from "react-hot-toast";
 
 interface Testimonial {
   _id: string;
@@ -117,6 +118,12 @@ useEffect(() => {
 
   try {
     const res = await axios.post("https://adhyanx-backend.onrender.com/api/testimonials", newTestimonial);
+    if(res.data.success){
+      toast.success("Testimonial submitted successfully!");
+    } else {
+      toast.error("Failed to submit testimonial. Please try again.");
+      return;
+    }
     const createdTestimonial = res.data;
     setTestimonials([createdTestimonial, ...testimonials]);
   } catch (error) {
